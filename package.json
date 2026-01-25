@@ -19,7 +19,6 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "vercel-build": "npm install && npm run build",
-    "postinstall": "npm ls react-scripts || npm install react-scripts",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "npm run build && echo 'Build completed! Ready for deployment.'",

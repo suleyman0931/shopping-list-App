@@ -708,7 +708,7 @@ export default function App() {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   // Close top menu when clicking outside
   useEffect(() => {
