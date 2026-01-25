@@ -293,12 +293,6 @@ const getWeeklyReports = () => {
   return loadFromStorage(STORAGE_KEYS.WEEKLY_REPORTS, {});
 };
 
-const shouldResetWeeklyItems = () => {
-  const lastResetWeek = loadFromStorage('last_reset_week', null);
-  const currentWeek = getCurrentWeekKey();
-  return lastResetWeek !== currentWeek;
-};
-
 export default function App() {
   // STATE MANAGEMENT - These are like variables that React watches for changes
   const [items, setItems] = useState(sampleItems); // Main list of shopping items
@@ -477,12 +471,16 @@ export default function App() {
 
   // TOGGLE DARK MODE
   function toggleDarkMode() {
-    setDarkMode(!darkMode);
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
   }
 
   // TOGGLE LANGUAGE
   function toggleLanguage() {
-    setLanguage(language === 'en' ? 'am' : 'en');
+    const newLanguage = language === 'en' ? 'am' : 'en';
+    setLanguage(newLanguage);
+    localStorage.setItem('language', newLanguage);
   }
 
   // NOTIFICATION FUNCTIONS
@@ -668,7 +666,8 @@ export default function App() {
   // Load settings on app start
   useEffect(() => {
     // Set current week key
-    setCurrentWeekKey(getCurrentWeekKey());
+    const weekKey = getCurrentWeekKey();
+    setCurrentWeekKey(weekKey);
     
     // Load items from localStorage
     const savedItems = loadFromStorage(STORAGE_KEYS.CURRENT_ITEMS, []);
@@ -679,14 +678,6 @@ export default function App() {
     // Load weekly reports
     const reports = getWeeklyReports();
     setWeeklyReports(reports);
-    
-    // Check if we need to reset for new week
-    if (shouldResetWeeklyItems() && savedItems.length > 0) {
-      // Show weekly reset notification instead of alert
-      setTimeout(() => {
-        setShowWeeklyResetNotification(true);
-      }, 1000);
-    }
     
     // Load notification settings
     const savedNotificationState = localStorage.getItem('notificationsEnabled');
@@ -710,6 +701,18 @@ export default function App() {
     const savedLanguage = localStorage.getItem('language');
     if (savedLanguage) {
       setLanguage(savedLanguage);
+    }
+    
+    // Check if we need to reset for new week (simplified)
+    const lastResetWeek = localStorage.getItem('last_reset_week');
+    if (lastResetWeek !== weekKey && savedItems.length > 0) {
+      // Show weekly reset notification after a delay
+      const timer = setTimeout(() => {
+        setShowWeeklyResetNotification(true);
+      }, 2000);
+      
+      // Cleanup function to clear timeout if component unmounts
+      return () => clearTimeout(timer);
     }
   }, []); // Empty dependency array - only run once on mount
 
