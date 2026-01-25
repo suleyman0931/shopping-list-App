@@ -4,18 +4,18 @@
   "description": "A modern, bilingual shopping list app with daily reminders for Ethiopian users",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%234facfe' rx='15'/><text x='50' y='65' font-family='Arial, sans-serif' font-size='60' text-anchor='middle' fill='white'>🛒</text><rect x='10' y='10' width='80' height='4' fill='%23009639'/><rect x='10' y='16' width='80' height='4' fill='%23FEDD00'/><rect x='10' y='22' width='80' height='4' fill='%23DA020E'/></svg>",
+      "sizes": "any",
+      "type": "image/svg+xml"
     },
     {
-      "src": "logo192.png",
-      "type": "image/png",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%234facfe' rx='15'/><text x='50' y='65' font-family='Arial, sans-serif' font-size='60' text-anchor='middle' fill='white'>🛒</text><rect x='10' y='10' width='80' height='4' fill='%23009639'/><rect x='10' y='16' width='80' height='4' fill='%23FEDD00'/><rect x='10' y='22' width='80' height='4' fill='%23DA020E'/></svg>",
+      "type": "image/svg+xml",
       "sizes": "192x192"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%234facfe' rx='15'/><text x='50' y='65' font-family='Arial, sans-serif' font-size='60' text-anchor='middle' fill='white'>🛒</text><rect x='10' y='10' width='80' height='4' fill='%23009639'/><rect x='10' y='16' width='80' height='4' fill='%23FEDD00'/><rect x='10' y='22' width='80' height='4' fill='%23DA020E'/></svg>",
+      "type": "image/svg+xml",
       "sizes": "512x512"
     }
   ],
