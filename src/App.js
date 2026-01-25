@@ -317,7 +317,7 @@ export default function App() {
   const [shoppingDate, setShoppingDate] = useState(''); // When user plans to shop
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Daily reminders
   const [marketDays, setMarketDays] = useState([]); // Selected market days (0=Sunday, 1=Monday, etc.)
-  const [currentWeekKey, setCurrentWeekKey] = useState(getCurrentWeekKey()); // Current week identifier
+  const [currentWeekKey, setCurrentWeekKey] = useState(''); // Current week identifier
   const [weeklyReports, setWeeklyReports] = useState({}); // All weekly reports
   
   // FORM STATE - These hold the values from the form inputs
@@ -629,7 +629,7 @@ export default function App() {
     setWeeklyReports(prev => ({ ...prev, [report.weekKey]: report }));
     // Show a temporary success message instead of alert
     const successMsg = document.createElement('div');
-    successMsg.textContent = t.reportSaved;
+    successMsg.textContent = language === 'en' ? 'Weekly report saved!' : 'ሳምንታዊ ሪፖርት ተቀምጧል!';
     successMsg.style.cssText = `
       position: fixed; top: 20px; right: 20px; z-index: 10000;
       background: #28a745; color: white; padding: 12px 20px;
@@ -637,7 +637,7 @@ export default function App() {
     `;
     document.body.appendChild(successMsg);
     setTimeout(() => document.body.removeChild(successMsg), 3000);
-  }, [items, t.reportSaved]);
+  }, [items, language]); // Depend on items and language instead of translations object
 
   const handleViewWeeklyReports = useCallback(() => {
     const reports = getWeeklyReports();
@@ -663,10 +663,13 @@ export default function App() {
     
     // Close the notification
     setShowWeeklyResetNotification(false);
-  }, [items]);
+  }, [items]); // Only depend on items, not translations
 
   // Load settings on app start
   useEffect(() => {
+    // Set current week key
+    setCurrentWeekKey(getCurrentWeekKey());
+    
     // Load items from localStorage
     const savedItems = loadFromStorage(STORAGE_KEYS.CURRENT_ITEMS, []);
     if (savedItems.length > 0) {
