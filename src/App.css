@@ -857,7 +857,7 @@ body {
 }
 
 .form-container.show {
-  max-height: 600px;
+  max-height: 800px;
   opacity: 1;
 }
 
@@ -1640,7 +1640,7 @@ select:focus {
   }
   
   .form-container.show {
-    max-height: 700px; /* More space for date field */
+    max-height: 900px; /* More space for date field */
   }
 }
 
