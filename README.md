@@ -1,70 +1,70 @@
-# Getting Started with Create React App
+# 🛒 Ethiopian Shopping List App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern, bilingual shopping list application designed specifically for Ethiopian users with market day notifications and Ethiopian Birr currency support.
 
-## Available Scripts
+## ✨ Features
 
-In the project directory, you can run:
+- **🌍 Bilingual Support**: English and Amharic (አማርኛ)
+- **💰 Ethiopian Birr Currency**: All prices in ብር
+- **📱 Mobile-First Design**: Responsive and touch-friendly
+- **🌙 Dark/Light Mode**: Toggle between themes
+- **🔔 Market Day Notifications**: Set reminders for your town's market days
+- **📅 Shopping Date Planning**: Schedule when to shop for each item
+- **⚡ Priority System**: Organize items by importance (1 = highest priority)
+- **✏️ Full CRUD Operations**: Add, edit, delete, and update item status
+- **📊 Shopping Progress**: Track budget, spending, and completion
+- **🔄 PWA Support**: Works offline and can be installed on mobile
 
-### `npm start`
+## 🚀 Live Demo
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+[View Live App](https://your-app-name.vercel.app)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🛠️ Technologies Used
 
-### `npm test`
+- **React 19** - Modern UI framework
+- **CSS3** - Custom styling with CSS variables
+- **Service Worker** - PWA functionality and notifications
+- **Local Storage** - Data persistence
+- **Responsive Design** - Mobile-first approach
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 👥 Developers
 
-### `npm run build`
+- **Suleyman Abdu** - Lead Developer
+- **Tesnim** - Co-Developer
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📧 Contact
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+For feedback or support: [suleymanabdu09@gmail.com](mailto:suleymanabdu09@gmail.com)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🏗️ Local Development
 
-### `npm run eject`
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Start development server: `npm start`
+4. Open [http://localhost:3000](http://localhost:3000)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 📦 Build for Production
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 🌟 How to Use
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. **Add Items**: Click "+ Add New Item to Buy"
+2. **Set Priority**: Lower numbers appear first (1, 2, 3...)
+3. **Choose Date**: When you plan to shop
+4. **Track Status**: Click items to mark as bought
+5. **Edit/Delete**: Use ✏️ and 🗑️ buttons
+6. **Set Market Days**: Configure in Settings for notifications
 
-## Learn More
+## 🎯 Ethiopian Market Day Feature
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+This app includes a unique feature for Ethiopian users:
+- Set your town's specific market days (typically 2-3 days per week)
+- Receive morning reminders at 7 AM on market days
+- Perfect for traditional Ethiopian shopping patterns
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Made with ❤️ for Ethiopian shoppers
