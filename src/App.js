@@ -311,6 +311,7 @@ export default function App() {
   const [showReportsModal, setShowReportsModal] = useState(false); // Whether to show weekly reports modal
   const [showAboutModal, setShowAboutModal] = useState(false); // Whether to show about us modal
   const [showHelpModal, setShowHelpModal] = useState(false); // Whether to show help modal
+  const [showWeeklyResetNotification, setShowWeeklyResetNotification] = useState(false); // Whether to show weekly reset notification
   const [darkMode, setDarkMode] = useState(false); // Dark/Light mode toggle
   const [language, setLanguage] = useState('en'); // Language selection (en/am)
   const [shoppingDate, setShoppingDate] = useState(''); // When user plans to shop
@@ -626,7 +627,16 @@ export default function App() {
   const handleGenerateWeeklyReport = useCallback(() => {
     const report = saveWeeklyReport(items);
     setWeeklyReports(prev => ({ ...prev, [report.weekKey]: report }));
-    alert(t.reportSaved);
+    // Show a temporary success message instead of alert
+    const successMsg = document.createElement('div');
+    successMsg.textContent = t.reportSaved;
+    successMsg.style.cssText = `
+      position: fixed; top: 20px; right: 20px; z-index: 10000;
+      background: #28a745; color: white; padding: 12px 20px;
+      border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    document.body.appendChild(successMsg);
+    setTimeout(() => document.body.removeChild(successMsg), 3000);
   }, [items, t.reportSaved]);
 
   const handleViewWeeklyReports = useCallback(() => {
@@ -651,8 +661,9 @@ export default function App() {
     localStorage.setItem('last_reset_week', newWeekKey);
     setCurrentWeekKey(newWeekKey);
     
-    alert(t.newWeekStarted);
-  }, [items, t.newWeekStarted]);
+    // Close the notification
+    setShowWeeklyResetNotification(false);
+  }, [items]);
 
   // Load settings on app start
   useEffect(() => {
@@ -668,11 +679,9 @@ export default function App() {
     
     // Check if we need to reset for new week
     if (shouldResetWeeklyItems() && savedItems.length > 0) {
-      // Auto-generate report for previous week and reset
+      // Show weekly reset notification instead of alert
       setTimeout(() => {
-        if (window.confirm(t.newWeekStarted + ' ' + t.viewPreviousWeek + '?')) {
-          handleWeeklyReset();
-        }
+        setShowWeeklyResetNotification(true);
       }, 1000);
     }
     
@@ -699,7 +708,7 @@ export default function App() {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, [handleWeeklyReset, t.newWeekStarted, t.viewPreviousWeek]);
+  }, []);
 
   // Close top menu when clicking outside
   useEffect(() => {
@@ -1011,6 +1020,16 @@ export default function App() {
           onClose={() => setShowHelpModal(false)}
           translations={t}
           language={language}
+        />
+      )}
+      
+      {/* WEEKLY RESET NOTIFICATION MODAL */}
+      {showWeeklyResetNotification && (
+        <WeeklyResetNotificationModal 
+          onReset={handleWeeklyReset}
+          onClose={() => setShowWeeklyResetNotification(false)}
+          onViewReports={handleViewWeeklyReports}
+          translations={t}
         />
       )}
     </div>
@@ -2043,6 +2062,80 @@ function HelpModal({ onClose, translations, language }) {
         <div className="modal-footer">
           <button className="cancel-button" onClick={onClose}>
             {translations.cancel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function WeeklyResetNotificationModal({ onReset, onClose, onViewReports, translations }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content weekly-reset-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>🗓️ {translations.newWeekStarted || 'New Week Started!'}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="modal-body">
+          <div className="reset-notification-content">
+            <div className="notification-icon">📅</div>
+            <h4 className="notification-title">
+              {translations.language === 'en' 
+                ? 'A new week has started!' 
+                : 'አዲስ ሳምንት ተጀምሯል!'
+              }
+            </h4>
+            <p className="notification-message">
+              {translations.language === 'en' 
+                ? 'Your previous shopping items have been automatically archived. You can view them in the weekly reports or start fresh with a new shopping list.'
+                : 'ያለፉት የግዢ እቃዎችዎ በራስ-ሰር ተቀምጠዋል። በሳምንታዊ ሪፖርቶች ውስጥ ማየት ወይም በአዲስ የግዢ ዝርዝር መጀመር ይችላሉ።'
+              }
+            </p>
+            
+            <div className="notification-options">
+              <div className="option-card">
+                <div className="option-icon">🔄</div>
+                <div className="option-content">
+                  <h6 className="option-title">
+                    {translations.language === 'en' ? 'Start Fresh' : 'አዲስ ጀምር'}
+                  </h6>
+                  <p className="option-desc">
+                    {translations.language === 'en' 
+                      ? 'Clear the list and start with new items for this week'
+                      : 'ዝርዝሩን ያጽዱ እና ለዚህ ሳምንት በአዲስ እቃዎች ይጀምሩ'
+                    }
+                  </p>
+                </div>
+              </div>
+              
+              <div className="option-card">
+                <div className="option-icon">📊</div>
+                <div className="option-content">
+                  <h6 className="option-title">
+                    {translations.language === 'en' ? 'View Reports' : 'ሪፖርቶችን ይመልከቱ'}
+                  </h6>
+                  <p className="option-desc">
+                    {translations.language === 'en' 
+                      ? 'Check your previous week\'s shopping summary'
+                      : 'የያለፈው ሳምንት የግዢ ማጠቃለያዎን ይመልከቱ'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="modal-footer">
+          <button className="primary-button" onClick={onReset}>
+            🔄 {translations.language === 'en' ? 'Start New Week' : 'አዲስ ሳምንት ጀምር'}
+          </button>
+          <button className="secondary-button" onClick={() => { onViewReports(); onClose(); }}>
+            📊 {translations.language === 'en' ? 'View Reports' : 'ሪፖርቶችን ይመልከቱ'}
+          </button>
+          <button className="cancel-button" onClick={onClose}>
+            {translations.language === 'en' ? 'Keep Current Items' : 'አሁኑን እቃዎች ይቀጥሉ'}
           </button>
         </div>
       </div>

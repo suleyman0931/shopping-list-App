@@ -4680,3 +4680,164 @@ select:focus {
     font-size: 0.85rem;
   }
 }
+/* WEEKLY RESET NOTIFICATION MODAL STYLES */
+.weekly-reset-modal {
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.reset-notification-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.notification-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.notification-title {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.notification-message {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.notification-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.option-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.option-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px var(--shadow);
+}
+
+.option-icon {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  opacity: 0.8;
+}
+
+.option-title {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.option-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.primary-button {
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.primary-button:hover {
+  background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+}
+
+.secondary-button {
+  padding: 12px 25px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.secondary-button:hover {
+  background: var(--bg-card);
+  border-color: #4facfe;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--shadow);
+}
+
+/* Mobile responsive for weekly reset modal */
+@media (max-width: 768px) {
+  .weekly-reset-modal {
+    width: 95%;
+    max-height: 85vh;
+  }
+  
+  .notification-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .option-card {
+    padding: 15px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .primary-button,
+  .secondary-button,
+  .cancel-button {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .weekly-reset-modal {
+    width: 98%;
+    margin: 10px;
+  }
+  
+  .notification-icon {
+    font-size: 3rem;
+  }
+  
+  .notification-title {
+    font-size: 1.3rem;
+  }
+  
+  .notification-message {
+    font-size: 0.9rem;
+  }
+}
