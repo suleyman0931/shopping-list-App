@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useState, useEffect, useCallback} from "react";
 import './App.css';
 
 // LANGUAGE TRANSLATIONS - English and Amharic
@@ -86,7 +86,24 @@ const translations = {
     about: "About",
     marketDayReminders: "Market Day Reminders",
     reminderOn: "ON - You'll get reminders",
-    reminderOff: "OFF - No reminders"
+    reminderOff: "OFF - No reminders",
+    weeklyReport: "Weekly Report",
+    viewReports: "View Weekly Reports",
+    currentWeek: "Current Week",
+    previousWeek: "Previous Week",
+    weekOf: "Week of",
+    completionRate: "Completion Rate",
+    itemsCompleted: "Items Completed",
+    totalSpent: "Total Spent",
+    budgetRemaining: "Budget Remaining",
+    noReportsYet: "No weekly reports yet",
+    reportSaved: "Weekly report saved!",
+    newWeekStarted: "New week started! Previous items archived.",
+    viewPreviousWeek: "View Previous Week",
+    backToCurrentWeek: "Back to Current Week",
+    weeklyReports: "Weekly Reports",
+    selectWeek: "Select Week",
+    reportDetails: "Report Details"
   },
   am: {
     title: "🛒 የግዢ ዝርዝር",
@@ -171,12 +188,116 @@ const translations = {
     about: "ስለ",
     marketDayReminders: "የገበያ ቀን ማስታወሻዎች",
     reminderOn: "በርቷል - ማስታወሻዎችን ይቀበላሉ",
-    reminderOff: "ጠፍቷል - ማስታወሻ የለም"
+    reminderOff: "ጠፍቷል - ማስታወሻ የለም",
+    weeklyReport: "ሳምንታዊ ሪፖርት",
+    viewReports: "ሳምንታዊ ሪፖርቶችን ይመልከቱ",
+    currentWeek: "የአሁኑ ሳምንት",
+    previousWeek: "ያለፈው ሳምንት",
+    weekOf: "ሳምንት የ",
+    completionRate: "የመጠናቀቅ መጠን",
+    itemsCompleted: "የተጠናቀቁ እቃዎች",
+    totalSpent: "አጠቃላይ የተወጣ",
+    budgetRemaining: "የቀረ በጀት",
+    noReportsYet: "ገና ሳምንታዊ ሪፖርት የለም",
+    reportSaved: "ሳምንታዊ ሪፖርት ተቀምጧል!",
+    newWeekStarted: "አዲስ ሳምንት ተጀመረ! ያለፉ እቃዎች ተቀምጠዋል።",
+    viewPreviousWeek: "ያለፈውን ሳምንት ይመልከቱ",
+    backToCurrentWeek: "ወደ አሁኑ ሳምንት ተመለስ",
+    weeklyReports: "ሳምንታዊ ሪፖርቶች",
+    selectWeek: "ሳምንት ይምረጡ",
+    reportDetails: "የሪፖርት ዝርዝሮች"
   }
 };
 
 // Start with empty list - no static sample data
 const sampleItems = [];
+
+// WEEKLY REPORT UTILITIES
+const getWeekKey = (date = new Date()) => {
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() - date.getDay()); // Start of week (Sunday)
+  startOfWeek.setHours(0, 0, 0, 0);
+  return startOfWeek.toISOString().split('T')[0]; // YYYY-MM-DD format
+};
+
+const getCurrentWeekKey = () => getWeekKey();
+
+// STORAGE UTILITIES
+const STORAGE_KEYS = {
+  CURRENT_ITEMS: 'shopping_items_current',
+  WEEKLY_REPORTS: 'shopping_weekly_reports',
+  SETTINGS: 'shopping_settings'
+};
+
+const saveToStorage = (key, data) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error('Failed to save to localStorage:', error);
+  }
+};
+
+const loadFromStorage = (key, defaultValue = null) => {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : defaultValue;
+  } catch (error) {
+    console.error('Failed to load from localStorage:', error);
+    return defaultValue;
+  }
+};
+
+// WEEKLY REPORT FUNCTIONS
+const generateWeeklyReport = (items, weekKey) => {
+  const totalItems = items.length;
+  const boughtItems = items.filter(item => item.status === 'bought');
+  const plannedItems = items.filter(item => item.status === 'planned');
+  
+  const totalBudget = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalSpent = boughtItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const remainingBudget = totalBudget - totalSpent;
+  
+  return {
+    weekKey,
+    date: new Date().toISOString(),
+    totalItems,
+    boughtItems: boughtItems.length,
+    plannedItems: plannedItems.length,
+    totalBudget,
+    totalSpent,
+    remainingBudget,
+    completionRate: totalItems > 0 ? Math.round((boughtItems.length / totalItems) * 100) : 0,
+    items: items.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      status: item.status,
+      totalCost: item.price * item.quantity
+    }))
+  };
+};
+
+const saveWeeklyReport = (items) => {
+  const currentWeek = getCurrentWeekKey();
+  const reports = loadFromStorage(STORAGE_KEYS.WEEKLY_REPORTS, {});
+  
+  reports[currentWeek] = generateWeeklyReport(items, currentWeek);
+  saveToStorage(STORAGE_KEYS.WEEKLY_REPORTS, reports);
+  
+  console.log('Weekly report saved for week:', currentWeek);
+  return reports[currentWeek];
+};
+
+const getWeeklyReports = () => {
+  return loadFromStorage(STORAGE_KEYS.WEEKLY_REPORTS, {});
+};
+
+const shouldResetWeeklyItems = () => {
+  const lastResetWeek = loadFromStorage('last_reset_week', null);
+  const currentWeek = getCurrentWeekKey();
+  return lastResetWeek !== currentWeek;
+};
 
 export default function App() {
   // STATE MANAGEMENT - These are like variables that React watches for changes
@@ -187,11 +308,16 @@ export default function App() {
   const [showForm, setShowForm] = useState(false); // Whether to show the add item form
   const [showSettings, setShowSettings] = useState(false); // Whether to show settings panel
   const [showTopMenu, setShowTopMenu] = useState(false); // Whether to show top menu
+  const [showReportsModal, setShowReportsModal] = useState(false); // Whether to show weekly reports modal
+  const [showAboutModal, setShowAboutModal] = useState(false); // Whether to show about us modal
+  const [showHelpModal, setShowHelpModal] = useState(false); // Whether to show help modal
   const [darkMode, setDarkMode] = useState(false); // Dark/Light mode toggle
   const [language, setLanguage] = useState('en'); // Language selection (en/am)
   const [shoppingDate, setShoppingDate] = useState(''); // When user plans to shop
   const [notificationsEnabled, setNotificationsEnabled] = useState(false); // Daily reminders
   const [marketDays, setMarketDays] = useState([]); // Selected market days (0=Sunday, 1=Monday, etc.)
+  const [currentWeekKey, setCurrentWeekKey] = useState(getCurrentWeekKey()); // Current week identifier
+  const [weeklyReports, setWeeklyReports] = useState({}); // All weekly reports
   
   // FORM STATE - These hold the values from the form inputs
   const [itemName, setItemName] = useState("");
@@ -225,7 +351,11 @@ export default function App() {
     };
     
     // Add new item to the list using spread operator (...)
-    setItems(prevItems => [...prevItems, newItem]);
+    const updatedItems = [...items, newItem];
+    setItems(updatedItems);
+    
+    // Save to localStorage
+    saveToStorage(STORAGE_KEYS.CURRENT_ITEMS, updatedItems);
     
     // Clear the form after adding item
     setItemName("");
@@ -263,7 +393,12 @@ export default function App() {
   function handleDeleteItem(item, event) {
     event.stopPropagation(); // Prevent item click
     if (window.confirm(`${t.deleteConfirm} "${item.name}"?`)) {
-      setItems(prevItems => prevItems.filter(i => i.id !== item.id));
+      const updatedItems = items.filter(i => i.id !== item.id);
+      setItems(updatedItems);
+      
+      // Save to localStorage
+      saveToStorage(STORAGE_KEYS.CURRENT_ITEMS, updatedItems);
+      
       console.log('Item deleted:', item);
     }
   }
@@ -282,11 +417,13 @@ export default function App() {
     };
     
     // Update the items array
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === selectedItem.id ? updatedItem : item
-      )
+    const updatedItems = items.map(item => 
+      item.id === selectedItem.id ? updatedItem : item
     );
+    setItems(updatedItems);
+    
+    // Save to localStorage
+    saveToStorage(STORAGE_KEYS.CURRENT_ITEMS, updatedItems);
     
     // Close modal and clear form
     setShowEditModal(false);
@@ -314,13 +451,15 @@ export default function App() {
   // HANDLE STATUS UPDATE - This runs when user changes item status in modal
   function handleStatusUpdate(newStatus) {
     // Update the items array - find the selected item and change its status
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === selectedItem.id 
-          ? { ...item, status: newStatus } // If this is the selected item, update its status
-          : item // Otherwise, keep the item unchanged
-      )
+    const updatedItems = items.map(item => 
+      item.id === selectedItem.id 
+        ? { ...item, status: newStatus } // If this is the selected item, update its status
+        : item // Otherwise, keep the item unchanged
     );
+    setItems(updatedItems);
+    
+    // Save to localStorage
+    saveToStorage(STORAGE_KEYS.CURRENT_ITEMS, updatedItems);
     
     // Close the modal and clear selection
     setShowModal(false);
@@ -483,8 +622,60 @@ export default function App() {
     setShowSettings(false);
   }
 
+  // WEEKLY REPORT FUNCTIONS
+  const handleGenerateWeeklyReport = useCallback(() => {
+    const report = saveWeeklyReport(items);
+    setWeeklyReports(prev => ({ ...prev, [report.weekKey]: report }));
+    alert(t.reportSaved);
+  }, [items, t.reportSaved]);
+
+  const handleViewWeeklyReports = useCallback(() => {
+    const reports = getWeeklyReports();
+    setWeeklyReports(reports);
+    setShowReportsModal(true);
+  }, []);
+
+  const handleWeeklyReset = useCallback(() => {
+    // Save current week's report before reset
+    if (items.length > 0) {
+      const report = saveWeeklyReport(items);
+      setWeeklyReports(prev => ({ ...prev, [report.weekKey]: report }));
+    }
+    
+    // Clear current items for new week
+    setItems([]);
+    saveToStorage(STORAGE_KEYS.CURRENT_ITEMS, []);
+    
+    // Update last reset week
+    const newWeekKey = getCurrentWeekKey();
+    localStorage.setItem('last_reset_week', newWeekKey);
+    setCurrentWeekKey(newWeekKey);
+    
+    alert(t.newWeekStarted);
+  }, [items, t.newWeekStarted]);
+
   // Load settings on app start
   useEffect(() => {
+    // Load items from localStorage
+    const savedItems = loadFromStorage(STORAGE_KEYS.CURRENT_ITEMS, []);
+    if (savedItems.length > 0) {
+      setItems(savedItems);
+    }
+    
+    // Load weekly reports
+    const reports = getWeeklyReports();
+    setWeeklyReports(reports);
+    
+    // Check if we need to reset for new week
+    if (shouldResetWeeklyItems() && savedItems.length > 0) {
+      // Auto-generate report for previous week and reset
+      setTimeout(() => {
+        if (window.confirm(t.newWeekStarted + ' ' + t.viewPreviousWeek + '?')) {
+          handleWeeklyReset();
+        }
+      }, 1000);
+    }
+    
     // Load notification settings
     const savedNotificationState = localStorage.getItem('notificationsEnabled');
     if (savedNotificationState === 'true') {
@@ -508,7 +699,7 @@ export default function App() {
     if (savedLanguage) {
       setLanguage(savedLanguage);
     }
-  }, []);
+  }, [handleWeeklyReset, t.newWeekStarted, t.viewPreviousWeek]);
 
   // Close top menu when clicking outside
   useEffect(() => {
@@ -615,6 +806,26 @@ export default function App() {
                   >
                     ⚙️ {t.settings}
                   </button>
+                  
+                  <button 
+                    className="menu-item"
+                    onClick={() => {
+                      handleViewWeeklyReports();
+                      setShowTopMenu(false);
+                    }}
+                  >
+                    📊 {t.viewReports}
+                  </button>
+                  
+                  <button 
+                    className="menu-item"
+                    onClick={() => {
+                      handleGenerateWeeklyReport();
+                      setShowTopMenu(false);
+                    }}
+                  >
+                    💾 {t.weeklyReport}
+                  </button>
                 </div>
 
                 {/* About Section */}
@@ -624,7 +835,7 @@ export default function App() {
                   <button 
                     className="menu-item"
                     onClick={() => {
-                      alert(`Ethiopian Shopping List App v1.0.0\n\nDeveloped by:\n• Suleyman Abdu\n• Tesnim Nuru\n\nA modern, bilingual shopping list app designed specifically for Ethiopian users with market day notifications and Ethiopian Birr currency support.`);
+                      setShowAboutModal(true);
                       setShowTopMenu(false);
                     }}
                   >
@@ -644,10 +855,7 @@ export default function App() {
                   <button 
                     className="menu-item"
                     onClick={() => {
-                      const helpText = language === 'en' 
-                        ? `How to Use:\n\n1. Click "+ Add New Item to Buy" to add items\n2. Set priority (1 = highest priority)\n3. Choose shopping date\n4. Click items to change status (Planned → Bought)\n5. Use ✏️ to edit, 🗑️ to delete\n6. Set market days in Settings for reminders\n\nTip: Lower priority numbers appear first!`
-                        : `እንዴት መጠቀም:\n\n1. እቃዎችን ለመጨመር "+ አዲስ እቃ ያክሉ" ይጫኑ\n2. ቅድሚያ ያስቀምጡ (1 = ከፍተኛ ቅድሚያ)\n3. የግዢ ቀን ይምረጡ\n4. ሁኔታን ለመቀየር እቃዎችን ይጫኑ (የታቀደ → የተገዛ)\n5. ለማርም ✏️ ፣ ለመሰረዝ 🗑️ ይጠቀሙ\n6. ለማስታወሻ በቅንብሮች ውስጥ የገበያ ቀናትን ያስቀምጡ\n\nምክር: ዝቅተኛ ቅድሚያ ቁጥሮች በመጀመሪያ ይታያሉ!`;
-                      alert(helpText);
+                      setShowHelpModal(true);
                       setShowTopMenu(false);
                     }}
                   >
@@ -775,6 +983,34 @@ export default function App() {
           onSave={saveSettings}
           onClose={() => setShowSettings(false)}
           translations={t}
+        />
+      )}
+      
+      {/* WEEKLY REPORTS MODAL */}
+      {showReportsModal && (
+        <WeeklyReportsModal 
+          reports={weeklyReports}
+          currentWeekKey={currentWeekKey}
+          onClose={() => setShowReportsModal(false)}
+          onWeeklyReset={handleWeeklyReset}
+          translations={t}
+        />
+      )}
+      
+      {/* ABOUT US MODAL */}
+      {showAboutModal && (
+        <AboutUsModal 
+          onClose={() => setShowAboutModal(false)}
+          translations={t}
+        />
+      )}
+      
+      {/* HELP MODAL */}
+      {showHelpModal && (
+        <HelpModal 
+          onClose={() => setShowHelpModal(false)}
+          translations={t}
+          language={language}
         />
       )}
     </div>
@@ -1347,6 +1583,464 @@ function EditItemModal({
           <button className="update-button" onClick={onUpdate}>
             💾 {translations.updateItem}
           </button>
+          <button className="cancel-button" onClick={onClose}>
+            {translations.cancel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeeklyReportsModal({ reports, currentWeekKey, onClose, onWeeklyReset, translations }) {
+  const [selectedWeek, setSelectedWeek] = useState(currentWeekKey);
+  
+  const reportKeys = Object.keys(reports).sort().reverse(); // Most recent first
+  const selectedReport = reports[selectedWeek];
+  
+  const formatWeekDate = (weekKey) => {
+    const date = new Date(weekKey);
+    const endDate = new Date(date);
+    endDate.setDate(date.getDate() + 6);
+    
+    return `${date.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content reports-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>📊 {translations.weeklyReports}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="modal-body reports-body">
+          {reportKeys.length === 0 ? (
+            <div className="no-reports">
+              <div className="no-reports-icon">📊</div>
+              <h4>{translations.noReportsYet}</h4>
+              <p>Start shopping and generate your first weekly report!</p>
+            </div>
+          ) : (
+            <>
+              {/* Week Selector */}
+              <div className="week-selector">
+                <label className="form-label">{translations.selectWeek}:</label>
+                <select 
+                  className="form-select"
+                  value={selectedWeek}
+                  onChange={(e) => setSelectedWeek(e.target.value)}
+                >
+                  {reportKeys.map(weekKey => (
+                    <option key={weekKey} value={weekKey}>
+                      {weekKey === currentWeekKey ? translations.currentWeek : translations.weekOf} {formatWeekDate(weekKey)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Report Details */}
+              {selectedReport && (
+                <div className="report-details">
+                  <h4 className="report-title">
+                    {translations.reportDetails} - {formatWeekDate(selectedReport.weekKey)}
+                  </h4>
+                  
+                  <div className="report-stats">
+                    <div className="report-stat-card">
+                      <div className="stat-icon">📝</div>
+                      <div className="stat-content">
+                        <div className="stat-label">{translations.totalItems}</div>
+                        <div className="stat-value">{selectedReport.totalItems}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="report-stat-card">
+                      <div className="stat-icon">✅</div>
+                      <div className="stat-content">
+                        <div className="stat-label">{translations.itemsBought}</div>
+                        <div className="stat-value">{selectedReport.boughtItems}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="report-stat-card">
+                      <div className="stat-icon">💰</div>
+                      <div className="stat-content">
+                        <div className="stat-label">{translations.totalSpent}</div>
+                        <div className="stat-value">{selectedReport.totalSpent} ብር</div>
+                      </div>
+                    </div>
+                    
+                    <div className="report-stat-card">
+                      <div className="stat-icon">📊</div>
+                      <div className="stat-content">
+                        <div className="stat-label">{translations.completionRate}</div>
+                        <div className="stat-value">{selectedReport.completionRate}%</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Items List */}
+                  <div className="report-items">
+                    <h5>Items in this week:</h5>
+                    <div className="report-items-list">
+                      {selectedReport.items.map(item => (
+                        <div key={item.id} className={`report-item ${item.status}`}>
+                          <span className="item-name">{item.name}</span>
+                          <span className="item-details">
+                            {item.quantity} × {item.price} ብር = {item.totalCost} ብር
+                          </span>
+                          <span className={`item-status status-${item.status}`}>
+                            {translations[item.status]}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        
+        <div className="modal-footer">
+          {reportKeys.length > 0 && (
+            <button className="reset-button" onClick={onWeeklyReset}>
+              🔄 Start New Week
+            </button>
+          )}
+          <button className="cancel-button" onClick={onClose}>
+            {translations.cancel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function AboutUsModal({ onClose, translations }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content about-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>ℹ️ {translations.aboutUs}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="modal-body about-body">
+          {/* App Info Section */}
+          <div className="app-info-section">
+            <div className="app-logo">🛒</div>
+            <h4 className="app-name">Ethiopian Shopping List</h4>
+            <p className="app-description">
+              {translations.language === 'en' 
+                ? "A modern, bilingual shopping list app designed specifically for Ethiopian users with market day notifications and Ethiopian Birr currency support."
+                : "ለኢትዮጵያዊ ተጠቃሚዎች በተለይ የተነደፈ ዘመናዊ፣ ባለሁለት ቋንቋ የግዢ ዝርዝር መተግበሪያ የገበያ ቀን ማሳወቂያዎች እና የኢትዮጵያ ብር ምንዛሪ ድጋፍ ያለው።"
+              }
+            </p>
+            <div className="version-info">
+              <span className="version-label">{translations.version}:</span>
+              <span className="version-number">1.0.0</span>
+            </div>
+          </div>
+
+          {/* Developers Section */}
+          <div className="developers-section">
+            <h5 className="developers-title">{translations.developer}s:</h5>
+            
+            <div className="developers-grid">
+              <div className="developer-card">
+                <div className="developer-photo">
+                  <img 
+                    src="/suleyman.png" 
+                    alt="Suleyman Abdu"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="photo-placeholder" style={{display: 'none'}}>
+                    👨‍💻
+                  </div>
+                </div>
+                <div className="developer-info">
+                  <h6 className="developer-name">Suleyman Abdu</h6>
+                  <p className="developer-role">Lead Developer</p>
+                  <a 
+                    href="mailto:suleymanabdu09@gmail.com" 
+                    className="developer-contact"
+                  >
+                    📧 suleymanabdu09@gmail.com
+                  </a>
+                </div>
+              </div>
+
+              <div className="developer-card">
+                <div className="developer-photo">
+                  <img 
+                    src="/tesnim.png" 
+                    alt="Tesnim"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                  <div className="photo-placeholder" style={{display: 'none'}}>
+                    👩‍💻
+                  </div>
+                </div>
+                <div className="developer-info">
+                  <h6 className="developer-name">Tesnim</h6>
+                  <p className="developer-role">Co-Developer</p>
+                  <p className="developer-contact">
+                    🤝 Collaboration Partner
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div className="features-section">
+            <h5 className="features-title">
+              {translations.language === 'en' ? 'Key Features:' : 'ዋና ባህሪያት:'}
+            </h5>
+            <ul className="features-list">
+              <li>🌐 {translations.language === 'en' ? 'Bilingual Support (English & Amharic)' : 'ባለሁለት ቋንቋ ድጋፍ (እንግሊዝኛ እና አማርኛ)'}</li>
+              <li>🏪 {translations.language === 'en' ? 'Ethiopian Market Day Notifications' : 'የኢትዮጵያ የገበያ ቀን ማሳወቂያዎች'}</li>
+              <li>💰 {translations.language === 'en' ? 'Ethiopian Birr Currency Support' : 'የኢትዮጵያ ብር ምንዛሪ ድጋፍ'}</li>
+              <li>📱 {translations.language === 'en' ? 'Mobile-First Responsive Design' : 'ሞባይል-መጀመሪያ ምላሽ ሰጪ ዲዛይን'}</li>
+              <li>🌙 {translations.language === 'en' ? 'Dark & Light Mode' : 'ጨለማ እና ብርሃን ሁነታ'}</li>
+              <li>📊 {translations.language === 'en' ? 'Weekly Shopping Reports' : 'ሳምንታዊ የግዢ ሪፖርቶች'}</li>
+              <li>🔔 {translations.language === 'en' ? 'Smart Reminder System' : 'ብልህ ማስታወሻ ስርዓት'}</li>
+              <li>💾 {translations.language === 'en' ? 'Data Persistence' : 'የመረጃ ቋሚነት'}</li>
+            </ul>
+          </div>
+
+          {/* Contact Section */}
+          <div className="contact-section">
+            <h5 className="contact-title">{translations.contactUs}:</h5>
+            <div className="contact-info">
+              <a 
+                href="mailto:suleymanabdu09@gmail.com?subject=Ethiopian Shopping List App - Feedback"
+                className="contact-link"
+              >
+                📧 suleymanabdu09@gmail.com
+              </a>
+              <p className="contact-note">
+                {translations.language === 'en' 
+                  ? 'We welcome your feedback and suggestions!'
+                  : 'የእርስዎን አስተያየት እና ሀሳቦች እንቀበላለን!'
+                }
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="modal-footer">
+          <button className="cancel-button" onClick={onClose}>
+            {translations.cancel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+function HelpModal({ onClose, translations, language }) {
+  const helpSteps = language === 'en' ? [
+    {
+      icon: "➕",
+      title: "Add Items",
+      description: "Click '+ Add New Item to Buy' to add items to your shopping list"
+    },
+    {
+      icon: "🔢",
+      title: "Set Priority",
+      description: "Set priority numbers (1 = highest priority). Lower numbers appear first"
+    },
+    {
+      icon: "📅",
+      title: "Choose Date",
+      description: "Select when you plan to shop for each item"
+    },
+    {
+      icon: "👆",
+      title: "Update Status",
+      description: "Click on items to change status from 'Planned' to 'Bought'"
+    },
+    {
+      icon: "✏️",
+      title: "Edit Items",
+      description: "Use the edit button (✏️) to modify item details"
+    },
+    {
+      icon: "🗑️",
+      title: "Delete Items",
+      description: "Use the delete button (🗑️) to remove items"
+    },
+    {
+      icon: "🏪",
+      title: "Market Days",
+      description: "Set your local market days in Settings for automatic reminders"
+    },
+    {
+      icon: "📊",
+      title: "Weekly Reports",
+      description: "Generate and view weekly shopping reports to track your progress"
+    }
+  ] : [
+    {
+      icon: "➕",
+      title: "እቃዎችን ያክሉ",
+      description: "እቃዎችን ወደ የግዢ ዝርዝርዎ ለመጨመር '+ አዲስ እቃ ያክሉ' ይጫኑ"
+    },
+    {
+      icon: "🔢",
+      title: "ቅድሚያ ያስቀምጡ",
+      description: "የቅድሚያ ቁጥሮችን ያስቀምጡ (1 = ከፍተኛ ቅድሚያ)። ዝቅተኛ ቁጥሮች በመጀመሪያ ይታያሉ"
+    },
+    {
+      icon: "📅",
+      title: "ቀን ይምረጡ",
+      description: "ለእያንዳንዱ እቃ መቼ ለመግዛት እንደሚያቅዱ ይምረጡ"
+    },
+    {
+      icon: "👆",
+      title: "ሁኔታን ያዘምኑ",
+      description: "ሁኔታን ከ'የታቀደ' ወደ 'የተገዛ' ለመቀየር እቃዎችን ይጫኑ"
+    },
+    {
+      icon: "✏️",
+      title: "እቃዎችን ያርሙ",
+      description: "የእቃ ዝርዝሮችን ለመቀየር የማርሚያ ቁልፍን (✏️) ይጠቀሙ"
+    },
+    {
+      icon: "🗑️",
+      title: "እቃዎችን ይሰርዙ",
+      description: "እቃዎችን ለማስወገድ የመሰረዣ ቁልፍን (🗑️) ይጠቀሙ"
+    },
+    {
+      icon: "🏪",
+      title: "የገበያ ቀናት",
+      description: "ለአውቶማቲክ ማስታወሻዎች በቅንብሮች ውስጥ የአካባቢዎን የገበያ ቀናት ያስቀምጡ"
+    },
+    {
+      icon: "📊",
+      title: "ሳምንታዊ ሪፖርቶች",
+      description: "እድገትዎን ለመከታተል ሳምንታዊ የግዢ ሪፖርቶችን ይፍጠሩ እና ይመልከቱ"
+    }
+  ];
+
+  const tips = language === 'en' ? [
+    "💡 Lower priority numbers appear first in your list",
+    "🔔 Enable notifications to get reminders on your market days",
+    "📱 The app works offline - your data is saved locally",
+    "🌙 Switch between dark and light modes for comfortable viewing",
+    "📊 Generate weekly reports to track your shopping habits",
+    "💰 All prices are in Ethiopian Birr (ብር)"
+  ] : [
+    "💡 ዝቅተኛ የቅድሚያ ቁጥሮች በዝርዝርዎ ውስጥ በመጀመሪያ ይታያሉ",
+    "🔔 በገበያ ቀናትዎ ማስታወሻዎችን ለማግኘት ማሳወቂያዎችን ያንቁ",
+    "📱 መተግበሪያው ከመስመር ውጭ ይሰራል - የእርስዎ መረጃ በአካባቢው ይቀመጣል",
+    "🌙 ለምቹ እይታ በጨለማ እና በብርሃን ሁነታዎች መካከል ይቀይሩ",
+    "📊 የግዢ ልማዶችዎን ለመከታተል ሳምንታዊ ሪፖርቶችን ይፍጠሩ",
+    "💰 ሁሉም ዋጋዎች በኢትዮጵያ ብር (ብር) ናቸው"
+  ];
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content help-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>❓ {translations.help}</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        
+        <div className="modal-body help-body">
+          {/* How to Use Section */}
+          <div className="help-section">
+            <h4 className="help-section-title">
+              {language === 'en' ? 'How to Use:' : 'እንዴት መጠቀም:'}
+            </h4>
+            
+            <div className="help-steps">
+              {helpSteps.map((step, index) => (
+                <div key={index} className="help-step">
+                  <div className="step-icon">{step.icon}</div>
+                  <div className="step-content">
+                    <h6 className="step-title">{step.title}</h6>
+                    <p className="step-description">{step.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tips Section */}
+          <div className="help-section">
+            <h4 className="help-section-title">
+              {language === 'en' ? 'Tips & Tricks:' : 'ምክሮች እና ዘዴዎች:'}
+            </h4>
+            
+            <div className="help-tips">
+              {tips.map((tip, index) => (
+                <div key={index} className="help-tip">
+                  {tip}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Keyboard Shortcuts */}
+          <div className="help-section">
+            <h4 className="help-section-title">
+              {language === 'en' ? 'Quick Actions:' : 'ፈጣን እርምጃዎች:'}
+            </h4>
+            
+            <div className="quick-actions">
+              <div className="quick-action">
+                <span className="action-key">📱</span>
+                <span className="action-desc">
+                  {language === 'en' ? 'Tap items to change status' : 'ሁኔታን ለመቀየር እቃዎችን ይንኩ'}
+                </span>
+              </div>
+              <div className="quick-action">
+                <span className="action-key">✏️</span>
+                <span className="action-desc">
+                  {language === 'en' ? 'Edit button to modify items' : 'እቃዎችን ለመቀየር የማርሚያ ቁልፍ'}
+                </span>
+              </div>
+              <div className="quick-action">
+                <span className="action-key">🗑️</span>
+                <span className="action-desc">
+                  {language === 'en' ? 'Delete button to remove items' : 'እቃዎችን ለማስወገድ የመሰረዣ ቁልፍ'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Support Section */}
+          <div className="help-section">
+            <h4 className="help-section-title">
+              {language === 'en' ? 'Need More Help?' : 'ተጨማሪ እርዳታ ይፈልጋሉ?'}
+            </h4>
+            
+            <div className="support-info">
+              <p>
+                {language === 'en' 
+                  ? 'If you have questions or need assistance, feel free to contact us:'
+                  : 'ጥያቄዎች ካሉዎት ወይም እርዳታ ከፈለጉ፣ እኛን ለማግኘት ነፃነት ይሰማዎ:'
+                }
+              </p>
+              <a 
+                href="mailto:suleymanabdu09@gmail.com?subject=Ethiopian Shopping List App - Help Request"
+                className="support-link"
+              >
+                📧 suleymanabdu09@gmail.com
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <div className="modal-footer">
           <button className="cancel-button" onClick={onClose}>
             {translations.cancel}
           </button>
