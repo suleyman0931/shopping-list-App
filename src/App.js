@@ -1776,7 +1776,7 @@ function AboutUsModal({ onClose, translations }) {
               <div className="developer-card">
                 <div className="developer-photo">
                   <img 
-                    src="/suleyman.png" 
+                    src="/suleyman2.png" 
                     alt="Suleyman Abdu"
                     onError={(e) => {
                       e.target.style.display = 'none';
