@@ -1802,7 +1802,7 @@ function AboutUsModal({ onClose, translations }) {
               <div className="developer-card">
                 <div className="developer-photo">
                   <img 
-                    src="/tesnim.png" 
+                    src="/tesnim2.png" 
                     alt="Tesnim"
                     onError={(e) => {
                       e.target.style.display = 'none';
