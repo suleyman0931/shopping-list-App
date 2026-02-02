@@ -1814,8 +1814,8 @@ function AboutUsModal({ onClose, translations }) {
                   </div>
                 </div>
                 <div className="developer-info">
-                  <h6 className="developer-name">Tesnim Nuru</h6>
-                  <p className="developer-role">Co-Developer</p>
+                  <h6 className="developer-name">Tesnim nuru</h6>
+                  <p className="developer-role"> Co-Developer & My wife</p>
                   <p className="developer-contact">
                     🤝 Collaboration Partner
                   </p>
